@@ -2,10 +2,16 @@
 
 Collection of small projects experimenting with speech recognition
 
+## What's here:
+
+- speech_light.py: example of controlling a relay to turn a light on and off
+- voice.py: testing voice recognition & other API examples
 
 
 
 ## Requirements:
+
+###		Python
 
 _You only need the pip3 commands for python3, but it's annoying if you forget to install one of them so I put both_ 
 
@@ -28,3 +34,7 @@ Sphinx voice recognition:
 
 All in one:
 >sudo apt-get install python3 python3-all-dev python3-pip build-essential swig git libpulse-dev python python-all-dev python-pip portaudio19-dev python-all-dev python3-all-dev && sudo pip install pyaudio && sudo pip3 install pyaudio && sudo pip install SpeechRecognition && sudo pip3 install SpeechRecognition && sudo pip install google-api-python-client && pip3 install google-api-python-client && sudo pip install pocketsphinx && sudo pip3 install pocketsphinx
+
+------------------------------------------------------
+###		Java
+https://cmusphinx.github.io/wiki/tutorialsphinx4/
