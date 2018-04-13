@@ -4,6 +4,12 @@ import struct
 import wave
 import math
 
+def printgreen(text):
+	print('\033[92m' + text + '\033[0m')
+
+def printred(text):
+	print('\033[31m' + text + '\033[0m')
+
 #https://stackoverflow.com/questions/4160175/detect-tap-with-pyaudio-from-live-mic/4160733
 def get_rms( block ):
 	SHORT_NORMALIZE = (1.0/32768.0)
@@ -27,6 +33,8 @@ def get_rms( block ):
 		sum_squares += n*n
 
 	return math.sqrt( sum_squares / count )
+
+SPEAKING = False
 BACKGROUND = 0.4
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -49,7 +57,13 @@ frames = []
 
 for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 	data = stream.read(CHUNK)
-	print(get_rms(data))
+	if get_rms(data) > BACKGROUND and SPEAKING==False:
+		SPEAKING = True
+		printgreen("Speaking")
+
+	if get_rms(data) < BACKGROUND and SPEAKING==True:
+		SPEAKING = False
+		printred("End")
 	frames.append(data)
 
 print("* done recording")
