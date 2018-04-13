@@ -82,7 +82,7 @@ def build_models(input_folder):
 		return word_models
 
 #give a .wav file, speech model and returns most likely word
-def classify(fname):
+def classify(fname, word_models):
 	print("testing " + fname)
 	# Read input file
 	sampling_freq, signal = wavfile.read(fname)
@@ -117,7 +117,7 @@ def run_tests(test_files, word_models):
 		count = 0
 		for test_file in test_files:
 
-			predicted_label = classify(test_file)
+			predicted_label = classify(test_file, word_models)
 
 			# Print the predicted output
 			start_index = test_file.find('/') + 1
@@ -177,7 +177,7 @@ def is_it_on_or_off():
 		# Build an HMM model for each word
 		word_models = build_models(datapath)
 		run_tests(["./temp.wav"], word_models)
-
+		
 		#return word_models
 
 def query_tester(word_models):

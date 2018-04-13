@@ -14,33 +14,23 @@ def printgreen(text):
 def printred(text):
 	print('\033[31m' + text + '\033[0m')
 
-#https://stackoverflow.com/questions/4160175/detect-tap-with-pyaudio-from-live-mic/4160733
+# https://stackoverflow.com/questions/4160175/detect-tap-with-pyaudio-from-live-mic/4160733
 def get_rms( block ):
 	SHORT_NORMALIZE = (1.0/32768.0)
-	# RMS amplitude is defined as the square root of the 
-	# mean over time of the square of the amplitude.
-	# so we need to convert this string of bytes into 
-	# a string of 16-bit samples...
-
-	# we will get one short out for each 
-	# two chars in the string.
 	count = len(block)/2
 	format = "%dh"%(count)
 	shorts = struct.unpack( format, block )
 
-	# iterate over the block.
 	sum_squares = 0.0
 	for sample in shorts:
-		# sample is a signed short in +/- 32768. 
-		# normalize it to 1.0
 		n = sample * SHORT_NORMALIZE
 		sum_squares += n*n
 
 	return math.sqrt( sum_squares / count )
 
-#set stuff up for pyAudio
+# set stuff up for pyAudio
 def initialise_audio_params():
-	global p, SPEAKING, BACKGROUND, CHUNK, FORMAT, CHANNELS, RATE, RECORD_SECONDS, WAVE_OUTPUT_FILENAME
+	global SPEAKING, BACKGROUND, CHUNK, FORMAT, CHANNELS, RATE, RECORD_SECONDS, WAVE_OUTPUT_FILENAME, p
 	p = pyaudio.PyAudio()
 	SPEAKING = False
 	BACKGROUND = 0.5
@@ -51,6 +41,7 @@ def initialise_audio_params():
 	RECORD_SECONDS = 20
 	WAVE_OUTPUT_FILENAME = "output.wav"
 
+# save data to a .wav file 
 def save_recording(fname, frames):
 	wf = wave.open(fname, 'wb')
 	wf.setnchannels(CHANNELS)
@@ -59,6 +50,7 @@ def save_recording(fname, frames):
 	wf.writeframes(b''.join(frames))
 	wf.close()
 
+# attempt to establish a background noise level
 def get_background():
 	total = 0
 	num = 0 
@@ -80,7 +72,11 @@ def get_background():
 	p.terminate()	
 	return avg
 
+# listen for speech and try to classify words said
 def live():
+	SPEAKING = False
+	print("* initialising AI model")
+	word_models = ai.build_models("data/")
 
 	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
@@ -104,14 +100,15 @@ def live():
 				printred("End")
 				#save recording and analyse
 
-				save_recording(p, "temp.wav", CHUNK, RATE, FORMAT, frames)
-				#save_recording(p, name + str(recordings) + ".wav", CHUNK, RATE, FORMAT, frames)
-				recordings+=1
+				save_recording("temp.wav", frames)
+				
+				#recordings+=1
 				#reset frames
 				frames = []
 				#wot i fink u said
-				ai.is_it_on_or_off()
-				break
+				label = ai.classify("temp.wav", word_models)
+				printgreen("Restult: " + label)
+				#break
 
 
 		if SPEAKING==True:
@@ -124,7 +121,7 @@ def live():
 	p.terminate()
 
 def record_samples(name):
-
+	SPEAKING = False
 	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
 	#get num
@@ -161,14 +158,14 @@ def record_samples(name):
 				countend = 0
 				SPEAKING = False
 				printred("End")
-				save_recording(p, name + str(recordings) + ".wav", CHUNK, RATE, FORMAT, frames)
+				save_recording(name + str(recordings) + ".wav", frames)
 				recordings+=1
 				#reset frames
 				frames = []
 		if SPEAKING==True:
 			frames.append(data)
 
-	print("* done recording")
+	printred("* done recording")
 
 	stream.stop_stream()
 	stream.close()
@@ -177,7 +174,12 @@ def record_samples(name):
 if __name__=='__main__':
 
 	args = sys.argv[1:]
-	
 	initialise_audio_params()
-	#record_samples("data/on/on")
-	live()
+	try:
+		#record_samples("data/on/on")
+		live()
+	except KeyboardInterrupt as e:
+		print("quitting")
+#TODO: 
+# - set get_bakcground to return std deviation
+# - multiple word splitting
