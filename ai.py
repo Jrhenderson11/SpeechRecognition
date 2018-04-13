@@ -83,19 +83,23 @@ def build_models(input_folder):
 def run_tests(test_files, speech_models):
 	with warnings.catch_warnings():
 		warnings.simplefilter('ignore')
+
 		# Classify input data
 		correcton = 0
 		correctoff = 0
 		count = 0
 		for test_file in test_files:
+
+			print("testing " + test_file)
 			# Read input file
 			sampling_freq, signal = wavfile.read(test_file)
-			# Extract MFCC features
 
+			# Extract MFCC features
 			features_mfcc = mfcc(signal, sampling_freq)
+
 			# Define variables
 			max_score = -float('inf')
-			output_label = None
+			predicted_label = None
 
 			# Run the current feature vector through all the HMM
 			# models and pick the one with the highest score
@@ -103,6 +107,7 @@ def run_tests(test_files, speech_models):
 				model, label = item
 		
 				score = model.compute_score(features_mfcc)
+				print(label + ": " + str(score))
 				if score > max_score:
 					max_score = score
 					predicted_label = label
@@ -121,6 +126,7 @@ def run_tests(test_files, speech_models):
 			else:
 				printred('Original: ' + original_label + ' / Predicted: ' + predicted_label)
 			count+=1
+			print("---------------------------")
 		print("On: " + str(correcton) + " / " + str(count/2))
 		print("Off: " + str(correctoff) + " / " + str(count/2))
 		print("Success: " + str(correcton + correctoff) + " / " + str(count))
@@ -167,19 +173,30 @@ def is_it_on_or_off():
 
 		#return speech_models
 
+def query_tester(speech_models):
+	while True:
+		print("input filename: ")
+		fname = input()
+		if "on" in fname:
+			fname = "data/on/" + fname + ".wav"
+		elif "off" in fname:
+			fname = "data/off/" + fname + ".wav"
+		run_tests([fname], speech_models)
+
 if __name__=='__main__':
+	warnings.filterwarnings("ignore")
 	with warnings.catch_warnings():
 		warnings.simplefilter('ignore')
 		#datapath = 'hmm-speech-recognition-0.1/audio/'
 		datapath = 'data/'
 		# Build an HMM model for each word
 		speech_models = build_models(datapath)
-		# Test files -- the 15th file in each subfolder
+
 		test_files = []
 		for root, dirs, files in os.walk(datapath):
 			for filename in (x for x in files):
 				filepath = os.path.join(root, filename)
 				test_files.append(filepath)
-				run_tests(test_files)
-
-		#print_features()
+		
+		#run_tests(test_files, speech_models)
+		query_tester(speech_models)
