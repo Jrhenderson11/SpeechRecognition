@@ -80,7 +80,7 @@ def build_models(input_folder):
 		model = None
 	return speech_models
 
-def run_tests(test_files):
+def run_tests(test_files, speech_models):
 	with warnings.catch_warnings():
 		warnings.simplefilter('ignore')
 		# Classify input data
@@ -155,6 +155,17 @@ def print_features():
 	plt.matshow(features_fb)
 	plt.title('Filter bank')
 	plt.show()
+
+def is_it_on_or_off():
+	with warnings.catch_warnings():
+		warnings.simplefilter('ignore')
+		#datapath = 'hmm-speech-recognition-0.1/audio/'
+		datapath = 'data/'
+		# Build an HMM model for each word
+		speech_models = build_models(datapath)
+		run_tests(["./temp.wav"], speech_models)
+
+		#return speech_models
 
 if __name__=='__main__':
 	with warnings.catch_warnings():

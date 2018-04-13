@@ -3,6 +3,7 @@ import pyaudio
 import struct
 import wave
 import math
+import ai
 
 def printgreen(text):
 	print('\033[92m' + text + '\033[0m')
@@ -81,6 +82,10 @@ for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 			save_recording(p, "temp.wav", CHUNK, RATE, FORMAT, frames)
 			#reset frames
 			frames = []
+			#wot i fink u said
+			ai.is_it_on_or_off()
+			break
+
 
 	if SPEAKING==True:
 		frames.append(data)
