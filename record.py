@@ -34,6 +34,15 @@ def get_rms( block ):
 
 	return math.sqrt( sum_squares / count )
 
+
+def save_recording(p, fname, chunk_size, rate, format, frames):
+	wf = wave.open(fname, 'wb')
+	wf.setnchannels(2)
+	wf.setsampwidth(p.get_sample_size(format))
+	wf.setframerate(rate)
+	wf.writeframes(b''.join(frames))
+	wf.close()
+
 SPEAKING = False
 BACKGROUND = 0.4
 CHUNK = 1024
@@ -62,13 +71,19 @@ for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 		printgreen("Speaking")
 
 	if get_rms(data) < BACKGROUND and SPEAKING==True:
-		if countend < 50:
+		if countend < 30:
 			countend+=1
 		else:
 			countend = 0
 			SPEAKING = False
 			printred("End")
-	frames.append(data)
+			#save recording and analyse
+			save_recording(p, "temp.wav", CHUNK, RATE, FORMAT, frames)
+			#reset frames
+			frames = []
+
+	if SPEAKING==True:
+		frames.append(data)
 
 print("* done recording")
 
@@ -76,9 +91,4 @@ stream.stop_stream()
 stream.close()
 p.terminate()
 
-wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b''.join(frames))
-wf.close()
+
