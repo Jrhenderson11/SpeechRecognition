@@ -54,7 +54,7 @@ stream = p.open(format=FORMAT,
 print("* recording")
 
 frames = []
-
+countend = 0
 for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 	data = stream.read(CHUNK)
 	if get_rms(data) > BACKGROUND and SPEAKING==False:
@@ -62,8 +62,12 @@ for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 		printgreen("Speaking")
 
 	if get_rms(data) < BACKGROUND and SPEAKING==True:
-		SPEAKING = False
-		printred("End")
+		if countend < 50:
+			countend+=1
+		else:
+			countend = 0
+			SPEAKING = False
+			printred("End")
 	frames.append(data)
 
 print("* done recording")
