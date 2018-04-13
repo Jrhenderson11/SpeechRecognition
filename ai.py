@@ -32,55 +32,82 @@ class ModelHMM(object):
 	
 	# Run the HMM model for inference on input data
 	def compute_score(self, input_data):
-	
 		return self.model.score(input_data)
 		
 # Define a function to build a model for each word
 def build_models(input_folder):
-	# Initialize the variable to store all the models
-	speech_models = []
-	# Parse the input directory
-	for dirname in os.listdir(input_folder):
-		# Get the name of the subfolder
-		subfolder = os.path.join(input_folder, dirname)
-		if not os.path.isdir(subfolder):
-			continue
-		# Extract the label
-		label = subfolder[subfolder.rfind('/') + 1:]
-		
-		# Initialize the variables
-		X = np.array([])
-		
-		# Create a list of files to be used for training
-		# We will leave one file per folder for testing
-		training_files = [x for x in os.listdir(subfolder) if x.endswith('.wav')][:-1]
-		# Iterate through the training files and build the models
-		for fname in training_files:
-			#Extract fpath
-			fpath = os.path.join(subfolder, fname)
-			# Read the audio signal from the input file
-			sampling_freq, signal = wavfile.read(fpath)
-			# Extract the MFCC features
-			with warnings.catch_warnings():
-				warnings.simplefilter('ignore')
+	with warnings.catch_warnings():
+		warnings.simplefilter('ignore')
+
+		# Initialize the variable to store all the models
+		word_models = []
+		# Parse the input directory
+		for dirname in os.listdir(input_folder):
+			# Get the name of the subfolder
+			subfolder = os.path.join(input_folder, dirname)
+			if not os.path.isdir(subfolder):
+				continue
+			# Extract the label
+			label = subfolder[subfolder.rfind('/') + 1:]
+			
+			# collected_features stores all the features for one word (label)
+			collected_features = np.array([])
+			
+			# Create a list of files to be used for training
+			# We will leave one file per folder for testing
+			training_files = [x for x in os.listdir(subfolder) if x.endswith('.wav')][:-1]
+			# Iterate through the training files and build the models
+			for fname in training_files:
+				#Extract fpath
+				fpath = os.path.join(subfolder, fname)
+				# Read the audio signal from the input file
+				sampling_freq, signal = wavfile.read(fpath)
+				# Extract the MFCC features
 				features_mfcc = mfcc(signal, sampling_freq)
-				# Append to the variable X
-				if len(X) == 0:
-					X = features_mfcc
+				# Append to the variable collected_features
+				
+				if len(collected_features) == 0:
+					collected_features = features_mfcc
 				else:
 					if features_mfcc == []:
 						print("empty features")
 					else:
 						#						print(features_mfcc)
-						X = np.append(X, features_mfcc, axis=0)
-		print(dirname + ": " + str(X))
-		model = ModelHMM()
-		model.train(X)
-		speech_models.append((model, label))
-		model = None
-	return speech_models
+						collected_features = np.append(collected_features, features_mfcc, axis=0)
+			print(dirname + ": " + str(collected_features))
+			model = ModelHMM()
+			model.train(collected_features)
+			word_models.append((model, label))
+			model = None
+		return word_models
 
-def run_tests(test_files, speech_models):
+#give a .wav file, speech model and returns most likely word
+def classify(fname):
+	print("testing " + fname)
+	# Read input file
+	sampling_freq, signal = wavfile.read(fname)
+
+	# Extract MFCC features
+	features_mfcc = mfcc(signal, sampling_freq)
+
+	# Define variables
+	max_score = -float('inf')
+	predicted_label = None
+
+	# Run the current feature vector through all the HMM
+	# models and pick the one with the highest score
+	for possibility in word_models:
+		model, label = possibility
+
+		score = model.compute_score(features_mfcc)
+		print(label + ": " + str(score))
+		if score > max_score:
+			max_score = score
+			predicted_label = label
+	return predicted_label
+
+#run all the testz
+def run_tests(test_files, word_models):
 	with warnings.catch_warnings():
 		warnings.simplefilter('ignore')
 
@@ -90,27 +117,7 @@ def run_tests(test_files, speech_models):
 		count = 0
 		for test_file in test_files:
 
-			print("testing " + test_file)
-			# Read input file
-			sampling_freq, signal = wavfile.read(test_file)
-
-			# Extract MFCC features
-			features_mfcc = mfcc(signal, sampling_freq)
-
-			# Define variables
-			max_score = -float('inf')
-			predicted_label = None
-
-			# Run the current feature vector through all the HMM
-			# models and pick the one with the highest score
-			for item in speech_models:
-				model, label = item
-		
-				score = model.compute_score(features_mfcc)
-				print(label + ": " + str(score))
-				if score > max_score:
-					max_score = score
-					predicted_label = label
+			predicted_label = classify(test_file)
 
 			# Print the predicted output
 			start_index = test_file.find('/') + 1
@@ -168,12 +175,12 @@ def is_it_on_or_off():
 		#datapath = 'hmm-speech-recognition-0.1/audio/'
 		datapath = 'data/'
 		# Build an HMM model for each word
-		speech_models = build_models(datapath)
-		run_tests(["./temp.wav"], speech_models)
+		word_models = build_models(datapath)
+		run_tests(["./temp.wav"], word_models)
 
-		#return speech_models
+		#return word_models
 
-def query_tester(speech_models):
+def query_tester(word_models):
 	while True:
 		print("input filename: ")
 		fname = input()
@@ -181,7 +188,7 @@ def query_tester(speech_models):
 			fname = "data/on/" + fname + ".wav"
 		elif "off" in fname:
 			fname = "data/off/" + fname + ".wav"
-		run_tests([fname], speech_models)
+		run_tests([fname], word_models)
 
 if __name__=='__main__':
 	warnings.filterwarnings("ignore")
@@ -190,7 +197,7 @@ if __name__=='__main__':
 		#datapath = 'hmm-speech-recognition-0.1/audio/'
 		datapath = 'data/'
 		# Build an HMM model for each word
-		speech_models = build_models(datapath)
+		word_models = build_models(datapath)
 
 		test_files = []
 		for root, dirs, files in os.walk(datapath):
@@ -198,5 +205,5 @@ if __name__=='__main__':
 				filepath = os.path.join(root, filename)
 				test_files.append(filepath)
 		
-		#run_tests(test_files, speech_models)
-		query_tester(speech_models)
+		run_tests(test_files, word_models)
+		#query_tester(word_models)

@@ -38,11 +38,24 @@ def get_rms( block ):
 
 	return math.sqrt( sum_squares / count )
 
-def save_recording(p, fname, chunk_size, rate, format, frames):
+#set stuff up for pyAudio
+def initialise_audio_params():
+	global p, SPEAKING, BACKGROUND, CHUNK, FORMAT, CHANNELS, RATE, RECORD_SECONDS, WAVE_OUTPUT_FILENAME
+	p = pyaudio.PyAudio()
+	SPEAKING = False
+	BACKGROUND = 0.5
+	CHUNK = 1024
+	FORMAT = pyaudio.paInt16
+	CHANNELS = 2
+	RATE = 44100
+	RECORD_SECONDS = 20
+	WAVE_OUTPUT_FILENAME = "output.wav"
+
+def save_recording(fname, frames):
 	wf = wave.open(fname, 'wb')
-	wf.setnchannels(2)
-	wf.setsampwidth(p.get_sample_size(format))
-	wf.setframerate(rate)
+	wf.setnchannels(CHANNELS)
+	wf.setsampwidth(p.get_sample_size(FORMAT))
+	wf.setframerate(RATE)
 	wf.writeframes(b''.join(frames))
 	wf.close()
 
@@ -50,20 +63,9 @@ def get_background():
 	total = 0
 	num = 0 
 	
-	CHUNK = 1024
-	FORMAT = pyaudio.paInt16
-	CHANNELS = 2
-	RATE = 44100
 	RECORD_SECONDS = 5
 	
-	p = pyaudio.PyAudio()
-
-	stream = p.open(format=FORMAT,
-					channels=CHANNELS,
-					rate=RATE,
-					input=True,
-					frames_per_buffer=CHUNK)
-
+	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
 	for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 		data = stream.read(CHUNK)
@@ -79,29 +81,13 @@ def get_background():
 	return avg
 
 def live():
-	SPEAKING = False
-	BACKGROUND = 0.5
-	CHUNK = 1024
-	FORMAT = pyaudio.paInt16
-	CHANNELS = 2
-	RATE = 44100
-	RECORD_SECONDS = 20
-	WAVE_OUTPUT_FILENAME = "output.wav"
 
-	p = pyaudio.PyAudio()
-
-	stream = p.open(format=FORMAT,
-					channels=CHANNELS,
-					rate=RATE,
-					input=True,
-					frames_per_buffer=CHUNK)
-
+	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
 	frames = []
 	countend = 0
 
 	print("* recording")
-
 
 	for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 		data = stream.read(CHUNK)
@@ -138,15 +124,6 @@ def live():
 	p.terminate()
 
 def record_samples(name):
-	SPEAKING = False
-	BACKGROUND = 0.5
-	CHUNK = 1024
-	FORMAT = pyaudio.paInt16
-	CHANNELS = 2
-	RATE = 44100
-	RECORD_SECONDS = 20
-
-	p = pyaudio.PyAudio()
 
 	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
@@ -170,7 +147,6 @@ def record_samples(name):
 	countend = 0
 
 	print("* recording for " + name)
-
 
 	while True:
 		data = stream.read(CHUNK)
@@ -199,6 +175,9 @@ def record_samples(name):
 	p.terminate()
 
 if __name__=='__main__':
+
 	args = sys.argv[1:]
+	
+	initialise_audio_params()
 	#record_samples("data/on/on")
 	live()
