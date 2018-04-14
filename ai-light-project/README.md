@@ -28,7 +28,7 @@ The system works by training a machine learning model to differentiate between d
 
  - give the sytem enough data to learn from, this is especially important if the variation is subtle between the classifications (I used ~ 50 samples of each word for **on** and **off**)
 
- - give an equal amount of training data for each class, if not the system may have a bias to the data you provided more data for
+ - give an equal amount of training data for each class, if not the system may have a bias to the classification you provided more data for
 
  - make sure the input data is representative of the data the system will be run on when live / testing, e.g. if your speech recognition is done with an omnidirectional microphone in a noisy room then don't just train using a headset microphone with low noise
 
@@ -42,11 +42,11 @@ The system works by training a machine learning model to differentiate between d
 This system gets all its training data from the folder `data/` (but you could change this in the source code). In the `data/` folder should be a number of subfolders, each subfolder is one word and contains a lot of wav files of that word, here's a diagram:
 
 ```
-data ---|-----> on ---| on01.wav ... on50.wav
-		|
-		|-----> on ---| off01.wav ... off50.wav
-		|
-		|-----> light ---| light01.wav ... light50.wav
+data -|----> on ---{ on01.wav ... on50.wav }
+      |
+      |----> on ---{ off01.wav ... off50.wav }
+      |
+      |----> light { light01.wav ... light50.wav }
 ```
 
 You can also find a sample set up with some placeholder wav files in `hmm-speech-recognition-0.1/audio/` (imagine this is a data folder equivalent). Notice how this data is not enough to reliably distinguish.
