@@ -5,3 +5,4 @@ bin/
 .settings
 
 ai-light-project/data/*/*.wav
+ai-light-project/temp.wav
