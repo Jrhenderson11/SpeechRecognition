@@ -37,18 +37,26 @@ class Connection():
 
 # listens over network for instructions to turn on or off
 def run_as_server():
+	on = False
 	server = Connection()
 	print(" Server started listening on " + str(server.host) + " : " + str(server.port))
 	server.start_server()
-	data = re.findall(r'(?<=b\').*(?=\\n\')', str(server.recieve()))[0]
+	data = server.recieve()
+	print(data)
+	data = re.findall(r'(?<=b\').*(?=\')', str(data))[0]
 	print("recieved: " + data)
 	while not data=="quit":
-		if data == "on":
+		if data == "on" and on==False:
 			turn_on()
-		elif data == "off":
+			on = True
+		elif data == "off" and on==True:
 			turn_off()
-		data = re.findall(r'(?<=b\').*(?=\\n\')', str(server.recieve()))[0]
-		print(data)
+			on = False
+		data = re.findall(r'(?<=b\').*(?=\')', str(server.recieve()))[0]
+		print("recieved: " + data)
+		if data == '':
+			server.close()
+			server.start_server()
 	print(" Server quitting")
 	server.close()
 
@@ -81,8 +89,8 @@ if __name__ == "__main__":
 	setup()
 	try:
 		run_as_server()
-	except:
-		print("error")
+	except Exception as e:
+		print("error: " + str(e))
 	#	finally:
 	#		GPIO.cleanup()
 	GPIO.cleanup()

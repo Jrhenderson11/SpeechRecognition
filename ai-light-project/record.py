@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pyaudio
+import socket
 import struct
 import wave
 import math
@@ -72,8 +73,18 @@ def get_background():
 	p.terminate()	
 	return avg
 
+def setup_client():
+	s = socket.socket()
+	host = socket.gethostname()
+	port = 12345
+
+	s.connect(('192.168.0.19', port))
+	return s
+
 # listen for speech and try to classify words said
-def live():
+def live(connection):
+	if connection == True:
+		s = setup_client()
 	SPEAKING = False
 	printgreen("* initialising AI model")
 	word_models = ai.build_models("data/")
@@ -94,22 +105,21 @@ def live():
 		if get_rms(data) < BACKGROUND and SPEAKING==True:
 			if countend < 30:
 				countend+=1
-			else:
+			elif countend==0:
 				countend = 0
 				SPEAKING = False
 				printred("End")
-				#save recording and analyse
 
+				#save recording and analyse
 				save_recording("temp.wav", frames)
-				
-				#recordings+=1
-				#reset frames
 				frames = []
+
 				#wot i fink u said
 				label = ai.classify("temp.wav", word_models)
-				printgreen("Restult: " + label)
-				#break
-
+				printgreen("Result: " + label)
+				if connection == True:
+					print("sending " + label + " to server")
+					s.send(label.encode())
 
 		if SPEAKING==True:
 			frames.append(data)
@@ -119,6 +129,8 @@ def live():
 	stream.stop_stream()
 	stream.close()
 	p.terminate()
+	if connection == True:
+		s.close()
 
 def record_samples(word):
 
@@ -180,7 +192,7 @@ if __name__=='__main__':
 	initialise_audio_params()
 	try:
 		#record_samples("on")
-		live()
+		live(True)
 	except KeyboardInterrupt as e:
 		print("quitting")
 
