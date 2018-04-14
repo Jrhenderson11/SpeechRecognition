@@ -6,3 +6,4 @@ bin/
 
 ai-light-project/data/*/*.wav
 ai-light-project/temp.wav
+ai-light-project/__pycache__/
