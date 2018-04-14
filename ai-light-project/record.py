@@ -120,7 +120,9 @@ def live():
 	stream.close()
 	p.terminate()
 
-def record_samples(name):
+def record_samples(word):
+
+	name = "data/" + word + "/" + word
 	SPEAKING = False
 	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
@@ -143,7 +145,7 @@ def record_samples(name):
 	frames = []
 	countend = 0
 
-	printred("* recording for " + name)
+	printred("* recording word " + word)
 
 	while True:
 		data = stream.read(CHUNK)
@@ -177,10 +179,11 @@ if __name__=='__main__':
 	args = sys.argv[1:]
 	initialise_audio_params()
 	try:
-		#record_samples("data/on/on")
+		#record_samples("on")
 		live()
 	except KeyboardInterrupt as e:
 		print("quitting")
+
 #TODO: 
-# - set get_bakcground to return std deviation
+# - set get_background to return std deviation
 # - multiple word splitting

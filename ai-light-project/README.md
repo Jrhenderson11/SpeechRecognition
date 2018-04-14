@@ -51,7 +51,7 @@ data -|----> on ---{ on01.wav ... on50.wav }
 
 You can also find a sample set up with some placeholder wav files in `hmm-speech-recognition-0.1/audio/` (imagine this is a data folder equivalent). Notice how this data is not enough to reliably distinguish.
 
-50 samples per word is quite a bit (I didn't actually see if there was a number below this which worked because I accidentally had uneven amounts of training data until I got up to 50 samples). Especially if you do it how I started like I did, by recording one track of me saying something 10 times and manually splitting and saving each word from audacity. 
+50 samples per word is quite a bit (I didn't actually see if there was a number below this which worked because I accidentally had uneven amounts of training data until I got up to 50 samples). Especially if you do it how I started like I did, by recording one track of me saying something 10 times and manually splitting and saving each word from audacity.
 
 Because this is such a pain in the arse I made a short script to automate this process, this is the **record_samples** in record.py. What it does is to capture a stream of mocrophone input, and for each chunk of data (representative of a tiny amount of time) calculates the amplitude of the sound using the root-mean-square. If this is above a predefined variable **BACKGROUND** it starts actually recording the microphone input until the amplitude drops again (it waits so it captures a little more time than exactly the microsecond you stop speaking, this helps capture hyphenated words or phrases of 2 or 3 words). Then it saves this to a wav file. This is designed so you give it a word to label the recordings as, and keep saying the word 
 
@@ -61,8 +61,31 @@ It automates the file saving to look for files in the format `wordNUMBER.wav` e.
 
 You might want to calibrate the background level, I tried to make a method that gets the mean but that doesn't give a good value to use as background, I might do it so it finds the mean + >2 standard deviations but that might cut off the first part of the word if you don't speak loud enough.
 
-This should be an easy way to quickly generate enough samples for training. 
+This should be an easy way to quickly generate enough samples for training.
+
+## Testing:
+
+To check your models training has been effective and will correctly classify words you should run tests. Some general principles for testing machine learning models are:
+
+ - split the training and testing data similar to a 70:30 or 80:20 split
+
+ - the testing data should be representative of the training data, and the data the system will be run on
+
+ - pay attention to different measures of success / failure: accuracy isn't the only important measure
+
+to test the current training data run ai.py with `python ai.py`, by default it tests all the training files to see if it can correctly classify them, if you comment **run_tests()** out and uncomment **query_tester(word_models)** then it will run an interface where you can input a word and number to test e.g `on01` will test file `on01.wav`
+
+currently it just runs tests on accuracy, but I want to add precision, recall and F-measure 
 
 ## Technical stuff:
 
 
+## Requirements:
+this system uses python3 (except currently relay.py) so install these with pip3, here's a list of packages you'll want to isntall (think it's comprehensive)
+
+- pyAudio
+- wave
+- hmmlearn
+- matplotlib
+- scipy
+- python_speech_features
