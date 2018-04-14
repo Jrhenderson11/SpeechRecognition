@@ -75,7 +75,7 @@ def get_background():
 # listen for speech and try to classify words said
 def live():
 	SPEAKING = False
-	print("* initialising AI model")
+	printgreen("* initialising AI model")
 	word_models = ai.build_models("data/")
 
 	stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
@@ -143,7 +143,7 @@ def record_samples(name):
 	frames = []
 	countend = 0
 
-	print("* recording for " + name)
+	printred("* recording for " + name)
 
 	while True:
 		data = stream.read(CHUNK)
@@ -151,6 +151,7 @@ def record_samples(name):
 			SPEAKING = True
 			printgreen("Speaking")
 
+		# if finished speaking wait a bit and then finish the recording
 		if get_rms(data) < BACKGROUND and SPEAKING==True:
 			if countend < 30:
 				countend+=1
