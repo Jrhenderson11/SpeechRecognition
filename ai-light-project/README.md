@@ -79,9 +79,20 @@ currently it just runs tests on accuracy, but I want to add precision, recall an
 
 ## Technical stuff:
 
+## Setting up the light:
+
+Relay.py can be run as a server which allows it to recieve commands over a network and turn the light on and off using a raspberry pi GPIO, because this needs to be started whenever the raspberry pi turns on and run in the background here's how to do that:
+
+edit the file **/etc/rc.local** and write this to it (use sudo)
+
+	echo “Starting relay server”
+	python3 /home/pi/Documents/programs/relay.py &
+	echo "turned on" > /home/pi/test.txt
+
+the last line is a test just to see if it works, then you can remove it
 
 ## Requirements:
-this system uses python3 (except currently relay.py) so install these with pip3, here's a list of packages you'll want to isntall (think it's comprehensive)
+This system uses python3 so install these with pip3, here's a list of packages you'll want to isntall (think it's comprehensive)
 
 - pyAudio
 - wave
@@ -89,3 +100,16 @@ this system uses python3 (except currently relay.py) so install these with pip3,
 - matplotlib
 - scipy
 - python_speech_features
+
+## Links:
+
+https://www.kaggle.com/dhanyajothimani/basic-visualization-and-clustering-in-python/notebook
+
+https://matplotlib.org/users/pyplot_tutorial.html
+
+https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.scatter
+
+https://radimrehurek.com/gensim/tut1.html
+
+https://www.clips.uantwerpen.be/pattern
+

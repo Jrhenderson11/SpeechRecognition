@@ -10,7 +10,7 @@ class Connection():
 	def __init__(self):
 		self.s = socket.socket()         
 		self.host = socket.gethostname() 
-		self.port = 12345 
+		self.port = 12345
 		self.connected = False
 	
 	def start_server(self):
@@ -34,6 +34,7 @@ class Connection():
 
 	def close(self):
 		self.c.close()
+		self.s.close()
 
 # listens over network for instructions to turn on or off
 def run_as_server():
@@ -44,6 +45,7 @@ def run_as_server():
 	data = server.recieve()
 	print(data)
 	data = re.findall(r'(?<=b\').*(?=\')', str(data))[0]
+	data = re.sub(r"\\n", "", data)
 	print("recieved: " + data)
 	while not data=="quit":
 		if data == "on" and on==False:
@@ -53,10 +55,22 @@ def run_as_server():
 			turn_off()
 			on = False
 		data = re.findall(r'(?<=b\').*(?=\')', str(server.recieve()))[0]
+		data = re.sub(r"\\n", "", data)
 		print("recieved: " + data)
 		if data == '':
+			print("restarting server")
 			server.close()
-			server.start_server()
+			print("waiting for port to open")
+			socketbusy = True
+			while socketbusy == True:
+				socketbusy = False
+				try:
+					server = Connection()
+					server.start_server()
+				except socket.error as e:
+					socketbusy = True
+
+			print("restarted")
 	print(" Server quitting")
 	server.close()
 
@@ -87,10 +101,9 @@ def test():
 
 if __name__ == "__main__":
 	setup()
+	time.sleep(10)
 	try:
 		run_as_server()
 	except Exception as e:
 		print("error: " + str(e))
-	#	finally:
-	#		GPIO.cleanup()
 	GPIO.cleanup()

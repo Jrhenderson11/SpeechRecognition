@@ -105,7 +105,7 @@ def live(connection):
 		if get_rms(data) < BACKGROUND and SPEAKING==True:
 			if countend < 30:
 				countend+=1
-			elif countend==0:
+			else:
 				countend = 0
 				SPEAKING = False
 				printred("End")
